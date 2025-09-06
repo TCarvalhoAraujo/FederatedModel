@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+service FederatedServer {
+  rpc GetModel(Empty) returns (ModelResponse);
+  rpc SendUpdate(ModelUpdate) returns (Ack);
+}
+
+message Empty {}
+
+message ModelResponse {
+  bytes weights = 1;
+}
+
+message ModelUpdate {
+  bytes weights = 1;
+}
+
+message Ack {
+  string message = 1;
+}
