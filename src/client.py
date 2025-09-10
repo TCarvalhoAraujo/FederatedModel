@@ -8,6 +8,7 @@ import torchvision
 import torchvision.transforms as transforms
 import io
 import model
+import sys
 
 
 def train_local(model, trainloader, epochs=1):
@@ -40,6 +41,8 @@ def run(client_id=1):
     trainset = torchvision.datasets.MNIST(root="./data", train=True, download=True, transform=transform)
 
     # Simular dados diferentes por cliente
+    # Cliente 1 treina só com as imagens de índice ímpar
+    # Cliente 2 treina só com as imagens de índice par
     subset = [i for i in range(len(trainset)) if i % 2 == client_id % 2]
     trainloader = torch.utils.data.DataLoader(torch.utils.data.Subset(trainset, subset), batch_size=32, shuffle=True)
 
@@ -55,4 +58,5 @@ def run(client_id=1):
 
 
 if __name__ == "__main__":
-    run(client_id=1)
+    client_id = int(sys.argv[1]) if len(sys.argv) > 1 else 1
+    run(client_id=client_id)

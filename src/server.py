@@ -12,8 +12,12 @@ import torchvision.transforms as transforms
 global_model = model.SimpleMLP()
 client_updates = []
 round_number = 0
-expected_clients = 2  # quantos clientes você espera por rodada
+expected_clients = 2  # quantos sao esperados por rodada
 
+# Dataset de teste (compartilhado pelo servidor para avaliação global)
+transform = transforms.Compose([transforms.ToTensor()])
+testset = torchvision.datasets.MNIST(root="./data", train=False, download=True, transform=transform)
+testloader = torch.utils.data.DataLoader(testset, batch_size=1000, shuffle=False)
 
 def evaluate_model(model, testloader):
     """Avalia acurácia do modelo global no dataset de teste."""
@@ -26,13 +30,6 @@ def evaluate_model(model, testloader):
             total += target.size(0)
             correct += (predicted == target).sum().item()
     return 100.0 * correct / total
-
-
-# Dataset de teste (compartilhado pelo servidor para avaliação global)
-transform = transforms.Compose([transforms.ToTensor()])
-testset = torchvision.datasets.MNIST(root="./data", train=False, download=True, transform=transform)
-testloader = torch.utils.data.DataLoader(testset, batch_size=1000, shuffle=False)
-
 
 class FederatedServerServicer(federated_pb2_grpc.FederatedServerServicer):
     def GetModel(self, request, context):
@@ -69,7 +66,7 @@ class FederatedServerServicer(federated_pb2_grpc.FederatedServerServicer):
             acc = evaluate_model(global_model, testloader)
 
             # Resumo da rodada
-            print(f"[Servidor] FedAvg concluído ✅")
+            print("[Servidor] FedAvg concluído")
             print(f"[Servidor] Acurácia global após rodada {round_number}: {acc:.2f}%")
             print(f"===== Rodada {round_number} concluída =====\n")
 
@@ -83,7 +80,7 @@ def serve():
     )
     server.add_insecure_port("[::]:50051")
     server.start()
-    print("🚀 Servidor federado rodando em localhost:50051")
+    print("Servidor federado rodando em localhost:50051")
     server.wait_for_termination()
 
 
